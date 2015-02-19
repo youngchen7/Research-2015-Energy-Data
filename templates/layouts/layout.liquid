@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>{% block title %}Mixture + Bootstrap{% endblock %}</title>
+        <title>{% block title %}yngchen{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         {{ "bootstrap.css" | asset_url | stylesheet_tag }}
         <style>
@@ -12,10 +12,21 @@
             .starter-template {
                 padding: 40px 15px;
             }
+
+            .axis path,
+            .axis line {
+                fill: none;
+                stroke: black;
+                shape-rendering: crispEdges;
+            }
+
+            .axis text {
+                font-family: "Segoe UI Semibold";
+                font-size: 14px;
+            }
         </style>
         <script type="text/javascript" src="../d3/d3.js"></script>
-
-        <!-- TODO: Complete this project :) -->
+        <script src="http://d3js.org/queue.v1.min.js"></script>
     </head>
     <body>
         {% include "navigation" %}
