@@ -1,3 +1,7 @@
+# Data folder, some files are too large for 
+# github's file size limit
+Data/
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
