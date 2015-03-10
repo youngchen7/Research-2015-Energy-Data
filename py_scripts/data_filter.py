@@ -23,7 +23,7 @@ with open('E:\Development\Research-2015-Energy-Data\Data\\022615-Hardoi.csv') as
         #for some reason, these labels reappear in the datafile, don't read them in
         if row["UPshape.C_CODE01"] == "UPshape.C_CODE01":
             #+2 is to compensate for the fact that I increment entries processed _after_ successfully processing an entry
-            #and that 
+            #and that the first entry is consumed to create column labels
             print("Labels found at CSV line number ", num_entries+2, ", ignored.")
         elif row["li"] == '-1':
             pass
