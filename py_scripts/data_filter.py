@@ -7,11 +7,14 @@ def date_to_index(year, month):
 def index_to_date(index):
 	return [index//12+1993, index%12+1]
 
-with open('E:\Development\Research-2015-Energy-Data\Data\\022615-Hardoi.csv') as csv_in, open('E:\Development\Research-2015-Energy-Data\Data\\Hardoi_processed.csv') as csv_out:
+with open('E:\Development\Research-2015-Energy-Data\Data\\022615-Hardoi.csv') as csv_in, open('E:\Development\Research-2015-Energy-Data\Data\\Hardoi_processed.csv', 'w') as csv_out:
     NUM_VILLAGES = 80
     NUM_DATA = 12*(2013-1993+1)
+    fieldnames = ['Village_ID', 'Longitude', 'Latitude', 'Year', 'Month', 'Vis', 'Count']
     processed_results = []
     datareader = csv.DictReader(csv_in)
+    writer = csv.DictWriter(csv_out, fieldnames = fieldnames, lineterminator = '\n')
+    writer.writeheader()
     num_entries = 0
     num_vil = 0
     start = time.time()
@@ -54,5 +57,9 @@ with open('E:\Development\Research-2015-Energy-Data\Data\\022615-Hardoi.csv') as
             except ValueError:
                 pass
                 #print("Malformed data (vis was not a valid integer (", row["vis"], ") at line number ", num_entries+2,", ignored.")
+    for vil in processed_results:
+        for index, data in enumerate(vil[3]):
+            date = index_to_date(index)
+            writer.writerow({'Village_ID': vil[0], 'Longitude':vil[1], 'Latitude':vil[2], 'Year':date[0], 'Month':date[1], 'Vis':data[0], 'Count':data[1] })
     #finished processing
     print("Finished processing ", num_entries, " entries, with a total of ", num_vil, " villages in ", time.time()-start, " seconds")
