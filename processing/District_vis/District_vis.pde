@@ -12,7 +12,11 @@ color dark = color(0, 0, 0);
 color light = color(255, 255, 255);
 int time_update = 0;
 int draw_update = 0;
-static final float update_interval = 300;
+static final float update_interval = 1;
+static final String[] month_names = {"January", "February", "March", "April", "May", "June", 
+                                      "July", "August", "September", "October", "November", "December"};
+                                      
+String[] mismatch_logs = new String[0];           
 
 void setup(){
   //Set size
@@ -30,13 +34,17 @@ void setup(){
   //Initialize new row to be checked
   new_row = table.getRow(table_row);
   println("Data starts at " + new_row.getInt("month") + "/" + new_row.getInt("year"));
+  month = new_row.getInt("month");
+  year = new_row.getInt("year");
 
   //Drawing variables
+  background(200);
   frameRate(60);
   fill(0);
   stroke(120);
   strokeWeight(1);
   shape(country, -50, -200);
+  redraw();
 }
 
 Float curve_vis(Float vis){
@@ -51,12 +59,14 @@ void drawDistrict(String loc, color c){
     PShape region = country.getChild(location[1]);
     if(region==null){
       println("location " + location[0] + ":" + location[1] + " not found.");
+      mismatch_logs = append(mismatch_logs, location[0] + ":" + location[1] + " (region)");
       district_map.put(loc, null);
       return;
     }
     PShape district = region.getChild(location[0]);
     if(district==null){
       println("location " + location[0] + ":" + location[1] + " not found.");
+      mismatch_logs = append(mismatch_logs, location[0] + ":" + location[1] + " (district)");
       district_map.put(loc, null);
       return;
     }
@@ -69,6 +79,8 @@ void drawDistrict(String loc, color c){
   {
     pushStyle();
       fill(c);
+      stroke(120);
+      strokeWeight(1);
       shape(district_map.get(loc), -50, -200);
     popStyle();
   }
@@ -108,11 +120,17 @@ void draw(){
          month = 1;
          ++year;
       }
-    }
+    } 
   }
   
   //Always update the map
-  draw_update = millis();
+  draw_update = millis(); //Record the time it took
+  noStroke();
+  fill(200);
+  rect(480, 950, 300, 40);
+  fill(0);
+  textSize(26);
+  text("//" + month_names[month-1] + " " + year, 500, 980); 
   
   for(String loc : cur_vis.keys()){    
     color from = lerpColor(dark, light, cur_vis.get(loc)/63.0);
@@ -124,3 +142,4 @@ void draw(){
   }
   println("Draw finished in " + (millis() - draw_update));
 }
+
