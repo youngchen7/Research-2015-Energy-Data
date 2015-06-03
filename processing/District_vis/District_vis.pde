@@ -109,6 +109,9 @@ void draw(){
       if(table_row < table_size)
       {
         new_row = table.getRow(table_row);
+      }else{
+        saveStrings("mismatch.log", mismatch_logs);
+        exit();
       }
       
     }
