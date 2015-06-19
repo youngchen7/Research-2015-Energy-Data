@@ -1,0 +1,57 @@
+RESOLVED========================================================================
+D11-Data                     India.svg
+Jammu & Kashmir         << Jammu and Kashmir
+Barabanki               << Bara Banki
+Chhattisgarh            << Chattisgarh
+Chandauli               << Chandraili
+Bihar                   << Jharkhand (Merged  Jharkhand into Bihar, since it was created post-2000)
+Cuddapah                << Y.S.R.
+Dantewada               << Dakshin Bastar Dantewada
+Darbangha               << Dharbanga
+South  Twenty Four Parganas (There is an extra space betwen South and Twenty)
+Dindigul:Tamil Nadu     << Dingugul:Tamil Nadu
+Gautam Buddha Nagar:Uttar Pradesh << GBN Faridabad:Uttar Pradesh
+Hathras:Uttar Pradesh   << Mahamaya Nagar:Uttar Pradesh
+Hazaribag:Bihar         << Hazaribagh:Bihar
+Jalna:Maharashtra       << Jaina:Maharashtra
+Jhunjhunun:Rajasthan    << Jhunjunun:Rajasthan
+Kanker:Chhattisgarh     << Uttar Bastar Kanker:Chhattisgarh
+Kasaragod:Kerala        << Kasaragod:Kerala
+Kawardha:Chhattisgarh   << Kabeerdham:Chhattisgarh
+Jyotiba Phule Nagar:Uttar Pradesh     << Jyotiba Nagar:Uttar Pradesh
+Madhepura:Bihar         << Madhopura:Bihar
+Mahrajganj:Uttar Pradesh<< Mahraganj:Uttar Pradesh
+Marigaon:Assam          << Morigaon:Assam
+Rajauri:Jammu & Kashmir << Rajouri:Jammu & Kashmir
+Uttarkashi:Uttarakhand  << Uttarakshi:Uttarakhand
+Pashchim Champaran:Bihar<< Paschim Champaran:Bihar
+Pashchimi Singhbhum:Bihar< Paschimi Singhbhum:Bihar
+Sant Ravidas Nagar:Uttar<< SRNB:Uttar Pradesh
+Nagaur:Rajasthan        << Nagaru:Rajasthan
+Medinpur:West Bengal    << Paschim/Purba Medinipur:West Bengal (Combined)
+Moradabad:Uttar Pradesh << Phule:Uttar Pradesh
+Nawanshahr:Punjab       << SBS Nagar:Punjab
+Nellore:Andhra Pradesh  << Sri Potti Sriramulu Nellore:Andhra Pradesh
+North Cachar Hills:Assam<< Dima Hasao:Assam
+Pakaur:Bihar            << Pakur:Bihar
+Sant Kabir Nagar:Uttar Pradesh << SKN:Uttar Pradesh
+Pathanamthitta:Kerala   << Pathanarothitta:Kerala
+Sibsagar:Assam          << Sivasagar:Assam
+Sindhudurg:Maharashtra  << Sindhugurg:Maharashtra
+Sivaganga:Tamil Nadu    << Sivagangai:Tamil Nadu
+Sonapur:Orissa          << Subarnapur:Orissa
+Tiruchirappalli:Tamil Nadu << Tiruchinappalli:Tamil Nadu
+Vadadora:Gujarat        << Vadodara:Gujarat
+
+UNRESOLVED======================================================================
+Na                      << ??? (Is the region not available?)
+*:Pondicherry           << *:Tamil Nadu (It seems like Pondicherry/Puducherry and Tamil Nadu have exchanged a couple of districts)
+Dhubri:West Bengal      << Dubhri:Assam (Seems like Dubhri district has changed states)
+Koch Bihar:Assam        << Koch Bihar:West Bengal
+Mahoba:Madhya Pradesh   << Mahoba:Uttar Pradesh
+Medinipur:Bihar/West Bengal << * Medinipur:West Bengal
+Cuddalore:Pondicherry     (No such district/state) Cuddalore:Tamil Nadu already has data
+Dhubri:West Bengal        (No such district/state) Dhubri:Assam already has data
+Erode:Pondicherry         (No such district/state) Erode:Tamil Nadu already has data
+Mahoba:Madhya Pradesh     (No such district/state) Mahoba:Uttar Pradesh already has data
+Viluppuram:Tamil Nadu     (No such district/state) Viluppuram:Tamil Nadu already has data
