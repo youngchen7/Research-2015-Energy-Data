@@ -1,0 +1,14 @@
+{
+  "name": "ac_webapp",
+  "version": "1.0.0",
+  "description": "web based animation framework for nightly satellite data imagery of India",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yngchen",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.1"
+  }
+}

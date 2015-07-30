@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>ac_vis</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #000000;
+		}
+	</style>
+	<script src="/js/pixi.min.js"></script>
+	<script src="/js/shp.min.js"></script>
+
+</head>
+<body>
+	<script>
+
+
+
+	// create an new instance of a pixi stage
+	var stage = new PIXI.Stage(0x66FF99);
+
+	// create a renderer instance.
+	var renderer = new PIXI.CanvasRenderer(400, 300);
+	//var renderer = PIXI.autoDetectRenderer(400, 300);
+
+	// add the renderer view element to the DOM
+	document.body.appendChild(renderer.view);
+
+	requestAnimationFrame( animate );
+
+	// create a texture from an image path
+	var texture = PIXI.Texture.fromImage("/res/bunny.png");
+	// create a new Sprite using the texture
+	var bunny = new PIXI.Sprite(texture);
+
+	// center the sprites anchor point
+	bunny.anchor.x = 0.5;
+	bunny.anchor.y = 0.5;
+
+	// move the sprite t the center of the screen
+	bunny.position.x = 200;
+	bunny.position.y = 150;
+
+	stage.addChild(bunny);
+
+
+	// load shapefile
+	var test_gjson;
+	shp("/data/AC_India_Geo/AC_ALLINDIA").then(function(geojson){
+		test_gjson = geojson;
+		var test_points = geojson.features[0].geometry.coordinates[0];
+		var test_box = geojson.features[0].geometry.bbox;
+		//calculate center of the bounding box
+		var center_x = (test_box[0] + test_box[2])/2;
+		var center_y = (test_box[1] + test_box[3])/2;
+
+
+		var test_shape = new PIXI.Graphics();
+
+		test_shape.pivot.x = center_x;
+		test_shape.pivot.y = center_y;
+
+		test_shape.scale.x = 100;
+		test_shape.scale.y = 100;
+
+		//Start drawing the shape
+		test_shape.beginFill(0xFFFFFF, 0.5);
+		test_shape.lineStyle(0.01, 0xFFFFFF, 1);
+
+		test_shape.moveTo( test_points[0][0], test_points[0][1] );
+		for(var i = 1; i < test_points.length; ++i)
+		{
+			test_shape.lineTo(test_points[i][0], test_points[i][1]);
+		}
+		test_shape.moveTo( test_points[0][0], test_points[0][1] );
+		test_shape.endFill();
+
+		test_shape.position.x = 200;
+		test_shape.position.y = 150;
+
+		stage.addChild(test_shape);
+
+
+		var graphics = new PIXI.Graphics();
+
+
+		// set a fill and line style
+		graphics.beginFill(0xFF3300);
+		graphics.lineStyle(0.01, 0xffd900, 1);
+
+		graphics.pivot.x = center_x;
+		graphics.pivot.y = center_y;
+
+		graphics.scale.x = 200;
+		graphics.scale.y = 200;
+
+		// draw a shape
+		graphics.moveTo(test_box[0], test_box[1]);
+		graphics.lineTo(test_box[2], test_box[1]);
+		graphics.lineTo(test_box[2], test_box[3]);
+		graphics.lineTo(test_box[0], test_box[3]);
+		graphics.lineTo(test_box[0], test_box[1]);
+		graphics.endFill();
+
+		stage.addChild(graphics);
+	});
+
+	function animate() {
+
+	    requestAnimationFrame( animate );
+
+	    // just for fun, lets rotate mr rabbit a little
+	    bunny.rotation += 0.1;
+	    // render the stage
+	    renderer.render(stage);
+	}
+
+	</script>
+
+	</body>
+</html>
