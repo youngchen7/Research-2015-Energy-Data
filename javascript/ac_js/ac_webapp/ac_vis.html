@@ -19,11 +19,15 @@
 
 
 	// create an new instance of a pixi stage
-	var stage = new PIXI.Stage(0x66FF99);
+	var stage = new PIXI.Graphics();
 
 	// create a renderer instance.
-	var renderer = new PIXI.CanvasRenderer(400, 300);
-	//var renderer = PIXI.autoDetectRenderer(400, 300);
+	//var renderer = new PIXI.CanvasRenderer(800, 800, {resolution: 2});
+	var renderer = new PIXI.WebGLRenderer(800, 800, {antialias: true, resolution: 2});
+	renderer.view.style.width = '800px';
+	renderer.view.style.height = '800px';
+
+	renderer.backgroundColor = 0xFFFFFF;
 
 	// add the renderer view element to the DOM
 	document.body.appendChild(renderer.view);
@@ -39,72 +43,50 @@
 	bunny.anchor.x = 0.5;
 	bunny.anchor.y = 0.5;
 
-	// move the sprite t the center of the screen
-	bunny.position.x = 200;
-	bunny.position.y = 150;
+	// move the sprite to the corner of the screen
+	bunny.position.x = 15;
+	bunny.position.y = 15;
 
 	stage.addChild(bunny);
 
 
-	// load shapefile
-	var test_gjson;
-	shp("/data/AC_India_Geo/AC_ALLINDIA").then(function(geojson){
-		test_gjson = geojson;
-		var test_points = geojson.features[0].geometry.coordinates[0];
-		var test_box = geojson.features[0].geometry.bbox;
-		//calculate center of the bounding box
-		var center_x = (test_box[0] + test_box[2])/2;
-		var center_y = (test_box[1] + test_box[3])/2;
-
-
-		var test_shape = new PIXI.Graphics();
-
-		test_shape.pivot.x = center_x;
-		test_shape.pivot.y = center_y;
-
-		test_shape.scale.x = 100;
-		test_shape.scale.y = 100;
-
-		//Start drawing the shape
-		test_shape.beginFill(0xFFFFFF, 0.5);
-		test_shape.lineStyle(0.01, 0xFFFFFF, 1);
-
-		test_shape.moveTo( test_points[0][0], test_points[0][1] );
-		for(var i = 1; i < test_points.length; ++i)
+	// load constituency file
+	shp("/data/AC_India_Geo_Simpl/AC_ALLINDIA").then(function(geojson){
+		var india = new PIXI.Graphics();
+		var india_bounds = [68.11029052734375, 8.084136962890625, 97.40910339355469, 37.02901077270508];
+		var india_cx = (india_bounds[0]+india_bounds[2])/2;
+		var india_cy = (india_bounds[1]+india_bounds[3])/2;
+		geojson.features.forEach(function(polygon)
 		{
-			test_shape.lineTo(test_points[i][0], test_points[i][1]);
-		}
-		test_shape.moveTo( test_points[0][0], test_points[0][1] );
-		test_shape.endFill();
+			var points = polygon.geometry.coordinates[0];
 
-		test_shape.position.x = 200;
-		test_shape.position.y = 150;
+			var constituency = new PIXI.Graphics();
 
-		stage.addChild(test_shape);
+			var scale = {x:25, y:-25};
 
+			var int_points = points.map(function(el){
+				return [Math.trunc((el[0] - india_cx)*scale.x), Math.trunc((el[1] - india_cy)*scale.y)];
+			})
 
-		var graphics = new PIXI.Graphics();
+			//Start drawing the constituency
+			constituency.beginFill(0xFFFFFF);
+			constituency.lineStyle(1, 0x000000);
 
+			constituency.moveTo( int_points[0][0] , int_points[0][1] );
 
-		// set a fill and line style
-		graphics.beginFill(0xFF3300);
-		graphics.lineStyle(0.01, 0xffd900, 1);
+			for(var i = 1; i < points.length; ++i)
+			{
+				constituency.lineTo(int_points[i][0], int_points[i][1]);
+			}
+			//constituency.moveTo( int_points[0][0], int_points[0][1]);
 
-		graphics.pivot.x = center_x;
-		graphics.pivot.y = center_y;
+			constituency.endFill();
 
-		graphics.scale.x = 200;
-		graphics.scale.y = 200;
-
-		// draw a shape
-		graphics.moveTo(test_box[0], test_box[1]);
-		graphics.lineTo(test_box[2], test_box[1]);
-		graphics.lineTo(test_box[2], test_box[3]);
-		graphics.lineTo(test_box[0], test_box[3]);
-		graphics.lineTo(test_box[0], test_box[1]);
-		graphics.endFill();
-
-		stage.addChild(graphics);
+			india.addChild(constituency);
+		});
+		india.position.x = 400;
+		india.position.y = 400;
+		stage.addChild(india);
 	});
 
 	function animate() {
