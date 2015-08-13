@@ -11,48 +11,34 @@
 	</style>
 	<script src="/js/pixi.min.js"></script>
 	<script src="/js/shp.min.js"></script>
+	<script src="/js/d3.min.js"></script>
+	<script src="/js/chroma.min.js"></script>
 
 </head>
 <body>
 	<script>
-
-
-
-	// create an new instance of a pixi stage
-	var stage = new PIXI.Graphics();
-
 	// create a renderer instance.
 	//var renderer = new PIXI.CanvasRenderer(800, 800, {resolution: 2});
-	var renderer = new PIXI.WebGLRenderer(800, 800, {antialias: true, resolution: 2});
+	var renderer = new PIXI.WebGLRenderer(800, 800, {antialias: true, resolution: 2, backgroundColor:0xFFFFFF});
 	renderer.view.style.width = '800px';
 	renderer.view.style.height = '800px';
-
-	renderer.backgroundColor = 0xFFFFFF;
 
 	// add the renderer view element to the DOM
 	document.body.appendChild(renderer.view);
 
-	requestAnimationFrame( animate );
+	// create an new instance of a pixi stage
+	var stage = new PIXI.Container();
 
-	// create a texture from an image path
-	var texture = PIXI.Texture.fromImage("/res/bunny.png");
-	// create a new Sprite using the texture
-	var bunny = new PIXI.Sprite(texture);
+	var india = new PIXI.Container();
 
-	// center the sprites anchor point
-	bunny.anchor.x = 0.5;
-	bunny.anchor.y = 0.5;
-
-	// move the sprite to the corner of the screen
-	bunny.position.x = 15;
-	bunny.position.y = 15;
-
-	stage.addChild(bunny);
-
+  // animation variables
+	var anim_run = false;
+	var anim_index = 0;
+	var anim_color = chroma.scale(["black", "#dab20d"]).domain([0,64]);
 
 	// load constituency file
 	shp("/data/AC_India_Geo_Simpl/AC_ALLINDIA").then(function(geojson){
-		var india = new PIXI.Graphics();
+		//Sadly hardcoded in right now. TODO fix by parsing geojson for the bounding box.
 		var india_bounds = [68.11029052734375, 8.084136962890625, 97.40910339355469, 37.02901077270508];
 		var india_cx = (india_bounds[0]+india_bounds[2])/2;
 		var india_cy = (india_bounds[1]+india_bounds[3])/2;
@@ -61,43 +47,124 @@
 			var points = polygon.geometry.coordinates[0];
 
 			var constituency = new PIXI.Graphics();
-
 			var scale = {x:25, y:-25};
 
-			var int_points = points.map(function(el){
-				return [Math.trunc((el[0] - india_cx)*scale.x), Math.trunc((el[1] - india_cy)*scale.y)];
-			})
+			//Attach an ID
+			constituency["stac"] = polygon.properties;
+
+			//transform the points with the correct scale and translation
+			points.forEach(function(el, ind, arr){
+				arr[ind] =  [Math.trunc((el[0] - india_cx)*scale.x), Math.trunc((el[1] - india_cy)*scale.y)];
+			});
+
+			//Discard duplicates (webGL does not like duplicates)
+			var seen = {};
+			var count = 0;
+			points = points.filter(function(el){
+				if(seen.hasOwnProperty(el)){
+					//Duplicate found, discard and count
+					++count;
+					return false;
+				}else{
+					//First time seeing this one, keep it
+					seen[el] = true;
+					return true;
+				}
+			});
+
+
+			//Flatten points to draw polygon
+			var poly_points = [].concat.apply([], points);
 
 			//Start drawing the constituency
 			constituency.beginFill(0xFFFFFF);
 			constituency.lineStyle(1, 0x000000);
 
-			constituency.moveTo( int_points[0][0] , int_points[0][1] );
-
-			for(var i = 1; i < points.length; ++i)
-			{
-				constituency.lineTo(int_points[i][0], int_points[i][1]);
-			}
-			//constituency.moveTo( int_points[0][0], int_points[0][1]);
-
+			constituency.drawPolygon(poly_points);
 			constituency.endFill();
 
+			//Interactivity
+			// constituency.hitArea = new PIXI.Polygon(poly_points);
+
+			// constituency.on("mouseover", acOver);
+			// constituency.on("mouseout", acOut);
+			//
+			// function acOver()
+			// {
+			// 	console.log("AC entered");
+			// 	this.tint = 0x0000FF;
+			// }
+			//
+			// function acOut()
+			// {
+			// 	console.log("AC exited");
+			// 	this.tint = 0xFFFFFF;
+			// }
+
 			india.addChild(constituency);
+
 		});
 		india.position.x = 400;
 		india.position.y = 400;
 		stage.addChild(india);
+		console.log("India loaded");
+	}).then(function(){
+		//Okay, India's loaded. Now start rendering.
+		console.log("Rendering started");
+		requestAnimationFrame( animate );
 	});
 
+	//Load CSV file
+	var data;
+	d3.csv("/data/generated/AC_India_Data_Formatted.csv").get(function(error, rows){
+		console.log("CSV Data Read");
+		data = rows;
+	});
+
+	//Helper to update tint for every AC
+	function updateTint()
+	{
+		india.children.forEach(function(child)
+			{
+				var id = child.stac["STATE"] + ":" + child.stac["AC_ID"];
+				var vis = Number(data[anim_index][id]);
+				if(vis < 0)
+					vis = 0;
+				if(vis > 64)
+					vis = 64;
+				//console.log("Updating tint for %s, vis %d", id, vis);
+				child.tint = "0x" + anim_color(vis).hex().substring(1);
+			});
+	}
+
+	function resetAnim()
+	{
+		anim_index = 0;
+		anim_run = true;
+	}
+
+	//Render function
 	function animate() {
+		  requestAnimationFrame( animate );
 
-	    requestAnimationFrame( animate );
+			if(anim_run)
+			{
+				console.log("Showing India as of %s-%s", data[anim_index]["Month"], data[anim_index]["Year"]);
+				updateTint();
+				anim_index += 1;
+			}
 
-	    // just for fun, lets rotate mr rabbit a little
-	    bunny.rotation += 0.1;
+			if(anim_run && !(anim_index < data.length))
+			{
+				anim_run = false;
+			}
+
 	    // render the stage
 	    renderer.render(stage);
+
 	}
+
+
 
 	</script>
 
