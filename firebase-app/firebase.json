@@ -1,0 +1,9 @@
+{
+  "firebase": "india-vis",
+  "public": ".",
+  "ignore": [
+    "firebase.json",
+    "**/.*",
+    "**/node_modules/**"
+  ]
+}

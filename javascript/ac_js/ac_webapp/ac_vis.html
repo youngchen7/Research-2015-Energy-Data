@@ -15,11 +15,11 @@
 	<script src="/js/chroma.min.js"></script>
 
 </head>
-<body>
+<body onclick = "resetAnim()">
 	<script>
 	// create a renderer instance.
 	//var renderer = new PIXI.CanvasRenderer(800, 800, {resolution: 2});
-	var renderer = new PIXI.WebGLRenderer(800, 800, {antialias: true, resolution: 2, backgroundColor:0xFFFFFF});
+	var renderer = new PIXI.WebGLRenderer(800, 800, {antialias: true, resolution: 2, backgroundColor:0x000000});
 	renderer.view.style.width = '800px';
 	renderer.view.style.height = '800px';
 
@@ -31,10 +31,14 @@
 
 	var india = new PIXI.Container();
 
+	//Create the text overlay
+	var date = new PIXI.Text("Click to play", {font : '36px Segoe UI', fill : 0xdab20d});
+	date.position = {x: 600, y: 700};
+
   // animation variables
 	var anim_run = false;
 	var anim_index = 0;
-	var anim_color = chroma.scale(["black", "#dab20d"]).domain([0,64]);
+	var anim_color = chroma.scale(["black", "#dab20d"]).domain([1, Math.sqrt(64)]);
 
 	// load constituency file
 	shp("/data/AC_India_Geo_Simpl/AC_ALLINDIA").then(function(geojson){
@@ -45,13 +49,11 @@
 		geojson.features.forEach(function(polygon)
 		{
 			var points = polygon.geometry.coordinates[0];
-
 			var constituency = new PIXI.Graphics();
 			var scale = {x:25, y:-25};
 
 			//Attach an ID
-			constituency["stac"] = polygon.properties;
-
+			constituency["id"] = (polygon.properties["STATE"] + ":" + polygon.properties["AC_ID"]).toUpperCase();
 			//transform the points with the correct scale and translation
 			points.forEach(function(el, ind, arr){
 				arr[ind] =  [Math.trunc((el[0] - india_cx)*scale.x), Math.trunc((el[1] - india_cy)*scale.y)];
@@ -72,7 +74,6 @@
 				}
 			});
 
-
 			//Flatten points to draw polygon
 			var poly_points = [].concat.apply([], points);
 
@@ -83,30 +84,14 @@
 			constituency.drawPolygon(poly_points);
 			constituency.endFill();
 
-			//Interactivity
-			// constituency.hitArea = new PIXI.Polygon(poly_points);
-
-			// constituency.on("mouseover", acOver);
-			// constituency.on("mouseout", acOut);
-			//
-			// function acOver()
-			// {
-			// 	console.log("AC entered");
-			// 	this.tint = 0x0000FF;
-			// }
-			//
-			// function acOut()
-			// {
-			// 	console.log("AC exited");
-			// 	this.tint = 0xFFFFFF;
-			// }
-
 			india.addChild(constituency);
 
 		});
 		india.position.x = 400;
 		india.position.y = 400;
 		stage.addChild(india);
+		//Add the date display
+		stage.addChild(date);
 		console.log("India loaded");
 	}).then(function(){
 		//Okay, India's loaded. Now start rendering.
@@ -126,42 +111,88 @@
 	{
 		india.children.forEach(function(child)
 			{
-				var id = child.stac["STATE"] + ":" + child.stac["AC_ID"];
+				var id = child.id;
 				var vis = Number(data[anim_index][id]);
 				if(vis < 0)
 					vis = 0;
-				if(vis > 64)
-					vis = 64;
+				if(vis > 63)
+					vis = 63;
 				//console.log("Updating tint for %s, vis %d", id, vis);
-				child.tint = "0x" + anim_color(vis).hex().substring(1);
+				child.tint = "0x" + anim_color(Math.sqrt(vis+1)).hex().substring(1);
 			});
+	}
+
+	//Helper function to advance the animation one "step"
+	function stepAnim()
+	{
+		if(anim_index < data.length)
+		{
+			console.log("Showing India as of %s-%s", data[anim_index]["Month"], data[anim_index]["Year"]);
+			var date_text = " " + data[anim_index]["Month"] + "-" + data[anim_index]["Year"];
+			date.text = date_text.substr(-7);
+			updateTint();
+			anim_index += 1;
+		}
 	}
 
 	function resetAnim()
 	{
-		anim_index = 0;
-		anim_run = true;
+		if(data)
+		{
+			anim_index = 0;
+			anim_run = true;
+		}
+	}
+
+	function checkMatch()
+	{
+		//Build {ID, bool} pair for mapIDs
+		var mapIDs = {};
+		india.children.forEach(function(child)
+		{
+			var id = child.id;
+			mapIDs[id] = false;
+		});
+
+		//Build {ID, bool} pair for csvIDs
+		//Might as well mark all mapIDs that show up while we're iterating
+		var csvIDs = {};
+		for (var id in data[0])
+		{
+			if(data[0].hasOwnProperty(id))
+			{
+				//If this ID shows up in our map
+				if(mapIDs.hasOwnProperty(id))
+				{
+					//remove the ID that showed up in both
+					if(!delete mapIDs[id])
+						{
+							//There was an issue removing the ID
+							console.log("Could not delete object property %s", id);
+						}
+				}
+				else {
+					//Stick the ID in csvIDs, it didn't show up in map!
+					csvIDs[id] = false;
+				}
+			}
+		}
+		//Print the mismatched IDs
+		//Might as well mark all dataIDs that show up while we're iterating
+		console.log("mismatched IDs in the map");
+		console.log(mapIDs);
+		console.log("mismatched IDs in the data");
+		console.log(csvIDs);
 	}
 
 	//Render function
 	function animate() {
 		  requestAnimationFrame( animate );
-
+			//Step the animation
 			if(anim_run)
-			{
-				console.log("Showing India as of %s-%s", data[anim_index]["Month"], data[anim_index]["Year"]);
-				updateTint();
-				anim_index += 1;
-			}
-
-			if(anim_run && !(anim_index < data.length))
-			{
-				anim_run = false;
-			}
-
+				stepAnim();
 	    // render the stage
 	    renderer.render(stage);
-
 	}
 
 
