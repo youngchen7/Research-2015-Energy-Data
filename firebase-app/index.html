@@ -3,10 +3,27 @@
 <head>
 	<title>ac_vis</title>
 	<style>
-		body {
-			margin: 0;
-			padding: 0;
+		body{
 			background-color: #000000;
+		}
+		.vis{
+			margin: auto;
+			width: 800px;
+			background-color: #000000;
+		}
+		.bar{
+			text-align: center;
+			margin: auto;
+			width: 800px;
+			background-color: #000000;
+		}
+		button{
+			margin: auto;
+			width: 150px;
+			background-color: #FFFFFF;
+			padding: 5px;
+			font-weight: bold;
+			border: 0px;
 		}
 	</style>
 	<script src="/js/pixi.min.js"></script>
@@ -15,16 +32,102 @@
 	<script src="/js/chroma.min.js"></script>
 
 </head>
-<body onclick = "resetAnim()">
+<body >
+	<div id="visualization" class ="vis"></div>
+	<div id="interactive" class = "bar"><p>
+		<table style="width:100%">
+		<tr>
+			<td>
+				<button id="reset" onclick = "resetAnim()"> RESET </button>
+			</td>
+			<td>
+				<button id="toggle" onclick = "toggleAnim()"> PLAY </button>
+			</td>
+			<td>
+				<button id="back" onclick = "stepBack()"> BACK </button>
+			</td>
+			<td>
+				<button id="forward" onclick = "stepAnim()"> FORWARD </button>
+			</td>
+		</tr>
+	</table>
+	</p></div>
 	<script>
-	// create a renderer instance.
+	//Inteactive Functions========================================================
+	function resetAnim()
+	{
+		if(data)
+		{
+			anim_index = 1;
+			stepBack();
+		}
+	}
+
+	function toggleAnim()
+	{
+		if(data && anim_index >= 0 && anim_index < data.length)
+		{
+			anim_run = !anim_run;
+			if(anim_run)
+			{
+				document.getElementById("toggle").textContent = "PAUSE";
+			}
+			else
+			{
+				document.getElementById("toggle").textContent = "PLAY";
+			}
+		}
+	}
+
+	function stepBack()
+	{
+		if(data)
+		{
+			if(anim_index > 0)
+			{
+				anim_index -= 1;
+				console.log("Showing India as of %s-%s", data[anim_index]["Month"], data[anim_index]["Year"]);
+				var date_text = " " + ("0"+data[anim_index]["Month"]).substr(-2) + "-" + data[anim_index]["Year"];
+				date.text = date_text.substr(-7);
+				updateTint();
+			}
+			else
+			{
+					anim_run = false;
+					document.getElementById("toggle").textContent = "PLAY";
+			}
+		}
+	}
+
+	//Helper function to advance the animation one "step"
+	function stepAnim()
+	{
+		if(data)
+		{
+			if(anim_index < data.length - 1)
+			{
+				anim_index += 1;
+				console.log("Showing India as of %s-%s", data[anim_index]["Month"], data[anim_index]["Year"]);
+				var date_text = " " + ("0"+data[anim_index]["Month"]).substr(-2) + "-" + data[anim_index]["Year"];
+				date.text = date_text.substr(-7);
+				updateTint();
+			}
+			else
+			{
+					anim_run = false;
+					document.getElementById("toggle").textContent = "PLAY";
+			}
+		}
+	}
+
+	//Script======================================================================
 	//var renderer = new PIXI.CanvasRenderer(800, 800, {resolution: 2});
 	var renderer = new PIXI.WebGLRenderer(800, 800, {antialias: true, resolution: 2, backgroundColor:0x000000});
 	renderer.view.style.width = '800px';
 	renderer.view.style.height = '800px';
 
 	// add the renderer view element to the DOM
-	document.body.appendChild(renderer.view);
+	document.getElementById("visualization").appendChild(renderer.view);
 
 	// create an new instance of a pixi stage
 	var stage = new PIXI.Container();
@@ -32,15 +135,24 @@
 	var india = new PIXI.Container();
 
 	//Create the text overlay
-	var date = new PIXI.Text("Click to play", {font : '36px Segoe UI', fill : 0xdab20d});
-	date.position = {x: 600, y: 700};
+	var date = new PIXI.Text("LOADING", {font : '24px Segoe UI', fill : 'white'});
+	date.position = {x: 500, y: 700};
+
+	//Create the progress bar
+	var bar_background = new PIXI.Graphics();
+	bar_background.beginFill(0x282828);
+	bar_background.drawRect(30, 795, 740, 5);
+
+	var bar = new PIXI.Graphics();
+	bar.beginFill(0xFFFFFF);
+	bar.drawRect(30, 795, 1, 5);
 
   // animation variables
 	var anim_run = false;
 	var anim_index = 0;
-	var anim_color = chroma.scale(["black", "#dab20d"]).domain([0, 63]);
-	var scalemode = 'default';
-	var scaleparam = 0;
+	var anim_color = chroma.scale(["#181818", "white"]).domain([0, 63]);
+	var scalemode = 'group';
+	var scaleparam = 60;
 
 	// load constituency file
 	shp("/data/AC_India_Geo_Simpl/AC_ALLINDIA").then(function(geojson){
@@ -81,10 +193,11 @@
 
 			//Start drawing the constituency
 			constituency.beginFill(0xFFFFFF);
-			constituency.lineStyle(1, 0x000000);
+			//constituency.lineStyle(1, 0x000000);
 
 			constituency.drawPolygon(poly_points);
 			constituency.endFill();
+			constituency.tint = '0x282828'
 
 			india.addChild(constituency);
 
@@ -94,6 +207,9 @@
 		stage.addChild(india);
 		//Add the date display
 		stage.addChild(date);
+		//Add the progress bar
+		stage.addChild(bar_background);
+		stage.addChild(bar);
 		console.log("India loaded");
 	}).then(function(){
 		//Okay, India's loaded. Now start rendering.
@@ -106,23 +222,25 @@
 	d3.csv("/data/generated/AC_India_Data_Formatted.csv").get(function(error, rows){
 		console.log("CSV Data Read");
 		data = rows;
+		date.text = "READY";
+		updateTint();
 	});
-	
-	
-	//Helper to scale a row of data 
+
+
+	//Helper to scale a row of data
 	function updateData(data, mode, param)
 	{
 		//Check if mode was specified, if not, set it to 'default'
-		mode = typeof mode === 'undefined' ? 'default' : mode;	
+		mode = typeof mode === 'undefined' ? 'default' : mode;
 		//Run bounds checking on the data
 		data.forEach(function(el, index, arr)
 		{
-			//Bounds checking 
+			//Bounds checking
 			arr[index] = el > 63 ? 63 : el < 0 ? 0 : el;
-		});	
+		});
 		//Run mode specific scaling
 		switch(mode)
-		{	
+		{
 			//Square root scale data
 			case 'sqrt':
 				data.forEach(function(el, i){
@@ -139,8 +257,8 @@
 			case 'stretch':
 				if(!param)
 					param = 100;
-				var num_spread = Math.floor(data.length*param/100);		
-				console.log("Num spread %d", num_spread);		
+				var num_spread = Math.floor(data.length*param/100);
+				console.log("Num spread %d", num_spread);
 				var map = data.map(function(el, i){
 					return i;
 				});
@@ -181,7 +299,7 @@
 		//Run bounds checking on the data again
 		data.forEach(function(el, index, arr)
 		{
-			//Bounds checking 
+			//Bounds checking
 			arr[index] = el > 63 ? 63 : el < 0 ? 0 : el;
 		});
 	}
@@ -202,14 +320,19 @@
 		//Update the tint
 		india.children.forEach(function(child, index)
 			{
-				var vis = data_row[index];				
+				var vis = data_row[index];
 				//console.log("Updating tint for %s, vis %d", id, vis);
 				child.tint = "0x" + anim_color(vis).hex().substring(1);
 			});
+			//Update the progress bar (TODO VERY HACK)
+			progress = anim_index*740.0/data.length;
+			bar.clear();
+			bar.beginFill(0xFFFFFF);
+			bar.drawRect(30, 795, progress, 5);
 	}
-	
+
 	//Function to change the scale mode and parameter
-	
+
 	function setMode(mode, param)
 	{
 		scalemode = mode;
@@ -217,27 +340,6 @@
 		resetAnim();
 	}
 
-	//Helper function to advance the animation one "step"
-	function stepAnim()
-	{
-		if(anim_index < data.length)
-		{
-			console.log("Showing India as of %s-%s", data[anim_index]["Month"], data[anim_index]["Year"]);
-			var date_text = " " + data[anim_index]["Month"] + "-" + data[anim_index]["Year"];
-			date.text = date_text.substr(-7);
-			updateTint();
-			anim_index += 1;
-		}
-	}
-
-	function resetAnim()
-	{
-		if(data)
-		{
-			anim_index = 0;
-			anim_run = true;
-		}
-	}
 
 	function checkMatch()
 	{
